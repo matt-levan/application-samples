@@ -1,0 +1,167 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: files
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-filebrowser-config
+  labels:
+    app: filebrowser
+    app.kubernetes.io/component: filebrowser
+    app.kubernetes.io/instance: filebrowser
+    app.kubernetes.io/name: filebrowser
+    app.kubernetes.io/part-of: filebrowser-app
+data:
+  .filebrowser.json: |
+    {
+      "port": 8080,
+      "baseURL": "",
+      "address": "",
+      "log": "stdout",
+      "database": "/files/database.db",
+      "root": "/files"
+    }
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: filebrowser
+  labels:
+        app: filebrowser
+        deployment: filebrowser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app: filebrowser
+  template:
+    metadata:
+      labels:
+        app: filebrowser
+        app.kubernetes.io/component: filebrowser
+        app.kubernetes.io/instance: filebrowser
+        app.kubernetes.io/name: filebrowser
+        app.kubernetes.io/part-of: filebrowser-app
+    spec:
+      restartPolicy: Always
+      serviceAccountName: default
+      schedulerName: default-scheduler
+      enableServiceLinks: true
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
+      containers:
+        - resources: {}
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: filebrowser
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: UTC
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          startupProbe:
+            tcpSocket:
+              port: 8080
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 30
+          volumeMounts:
+            - name: filebrowser-config
+              mountPath: /.filebrowser.json
+              subPath: .filebrowser.json
+            - name: data
+              mountPath: /files
+          terminationMessagePolicy: File
+          image: 'filebrowser/filebrowser:v2.18.0'
+      automountServiceAccountToken: true
+      serviceAccount: default
+      volumes:
+        - name: filebrowser-config
+          configMap:
+            name: my-filebrowser-config
+            defaultMode: 420
+        - name: data
+          persistentVolumeClaim:
+            claimName: files
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 600
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: filebrowser
+  labels:
+    app: filebrowser
+    app.kubernetes.io/component: filebrowser
+    app.kubernetes.io/instance: filebrowser
+    app.kubernetes.io/name: filebrowser
+    app.kubernetes.io/part-of: filebrowser-app
+  annotations:
+    app.openshift.io/vcs-uri: 'https://github.com/jblumert/filebrowser'
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+  selector:
+    app: filebrowser
+
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: filebrowser
+  labels:
+    app: filebrowser
+    app.kubernetes.io/component: filebrowser
+    app.kubernetes.io/instance: filebrowser
+    app.kubernetes.io/name: filebrowser
+    app.kubernetes.io/part-of: filebrowser-app
+  annotations:
+    openshift.io/host.generated: 'true'
+spec:
+  to:
+    kind: Service
+    name: filebrowser
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
