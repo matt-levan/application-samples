@@ -150,8 +150,6 @@ metadata:
     app.kubernetes.io/instance: filebrowser
     app.kubernetes.io/name: filebrowser
     app.kubernetes.io/part-of: filebrowser-app
-  annotations:
-    openshift.io/host.generated: 'true'
 spec:
   to:
     kind: Service
