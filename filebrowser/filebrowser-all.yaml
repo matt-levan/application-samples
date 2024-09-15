@@ -10,6 +10,18 @@ spec:
       storage: 10Gi
 
 ---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: filebrowser-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
 
 kind: ConfigMap
 apiVersion: v1
@@ -28,7 +40,7 @@ data:
       "baseURL": "",
       "address": "",
       "log": "stdout",
-      "database": "/files/database.db",
+      "database": "/config/database.db",
       "root": "/files"
     }
 
@@ -94,6 +106,8 @@ spec:
             successThreshold: 1
             failureThreshold: 30
           volumeMounts:
+            - name: config
+              mountPath: /config
             - name: filebrowser-config
               mountPath: /.filebrowser.json
               subPath: .filebrowser.json
@@ -104,6 +118,9 @@ spec:
       automountServiceAccountToken: true
       serviceAccount: default
       volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: filebrowser-config
         - name: filebrowser-config
           configMap:
             name: my-filebrowser-config
@@ -129,6 +146,8 @@ metadata:
     app.kubernetes.io/instance: filebrowser
     app.kubernetes.io/name: filebrowser
     app.kubernetes.io/part-of: filebrowser-app
+  annotations:
+    app.openshift.io/vcs-uri: 'https://github.com/jblumert/filebrowser'
 spec:
   ports:
     - name: 8080-tcp
@@ -150,6 +169,8 @@ metadata:
     app.kubernetes.io/instance: filebrowser
     app.kubernetes.io/name: filebrowser
     app.kubernetes.io/part-of: filebrowser-app
+  annotations:
+    openshift.io/host.generated: 'true'
 spec:
   to:
     kind: Service
