@@ -38,28 +38,6 @@ spec:
         volumeMounts:
           - name: mongo-db
             mountPath: /bitnami/mongodb/data/db
-        readinessProbe:
-          exec:
-            initialDelaySeconds: 5
-            timeoutSeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            failureThreshold: 6
-            command:
-              - /bin/sh
-              - -c
-              - mongosh --port 27017 --eval 'db.hello().isWritablePrimary' | grep -q 'true'
-        livenessProbe:
-          exec:
-            initialDelaySeconds: 30
-            timeoutSeconds: 10
-            periodSeconds: 20
-            successThreshold: 1
-            failureThreshold: 6
-            command:
-              - /bin/sh
-              - '-c'
-              - mongosh --port 27017 --eval "db.adminCommand('ping')"
       volumes:
         - name: mongo-db
           persistentVolumeClaim:
