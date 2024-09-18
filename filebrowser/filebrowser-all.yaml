@@ -75,19 +75,31 @@ spec:
       containers:
         - resources: {}
           readinessProbe:
-            tcpSocket:
-              port: 8080
-            timeoutSeconds: 1
-            periodSeconds: 10
+            exec:
+              command:
+                - "curl"
+                - "--fail"
+                - "-o"
+                - "/dev/null"
+                - "http://localhost:8080/health"
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 60
             successThreshold: 1
             failureThreshold: 3
           terminationMessagePath: /dev/termination-log
           name: filebrowser
           livenessProbe:
-            tcpSocket:
-              port: 8080
-            timeoutSeconds: 1
-            periodSeconds: 10
+            exec:
+              command:
+                - "curl"
+                - "--fail"
+                - "-o"
+                - "/dev/null"
+                - "http://localhost:8080/health"
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 60
             successThreshold: 1
             failureThreshold: 3
           env:
@@ -98,13 +110,6 @@ spec:
               containerPort: 8080
               protocol: TCP
           imagePullPolicy: IfNotPresent
-          startupProbe:
-            tcpSocket:
-              port: 8080
-            timeoutSeconds: 1
-            periodSeconds: 5
-            successThreshold: 1
-            failureThreshold: 30
           volumeMounts:
             - name: config
               mountPath: /config
