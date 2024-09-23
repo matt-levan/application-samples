@@ -4,7 +4,7 @@ metadata:
   name: br-ex-network
 spec:
   nodeSelector:
-    node-role.kubernetes.io/worker: '' 
+    techzone.ibm.com/vmnetwork: 'true' 
   desiredState:
     ovn:
       bridge-mappings:
