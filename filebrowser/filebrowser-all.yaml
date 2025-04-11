@@ -3,6 +3,7 @@ apiVersion: v1
 metadata:
   name: files
 spec:
+  storageClassName: ocs-storagecluster-ceph-rbd
   accessModes:
     - ReadWriteOnce
   resources:
@@ -15,6 +16,7 @@ apiVersion: v1
 metadata:
   name: filebrowser-config
 spec:
+  storageClassName: ocs-storagecluster-ceph-rbd
   accessModes:
     - ReadWriteOnce
   resources:
