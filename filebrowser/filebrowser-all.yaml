@@ -1,6 +1,12 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
+  labels:
+    app: filebrowser
+    app.kubernetes.io/component: filebrowser
+    app.kubernetes.io/instance: filebrowser
+    app.kubernetes.io/name: filebrowser
+    app.kubernetes.io/part-of: filebrowser-app
   name: files
 spec:
   storageClassName: ocs-storagecluster-ceph-rbd
@@ -14,6 +20,12 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
+  labels:
+    app: filebrowser
+    app.kubernetes.io/component: filebrowser
+    app.kubernetes.io/instance: filebrowser
+    app.kubernetes.io/name: filebrowser
+    app.kubernetes.io/part-of: filebrowser-app
   name: filebrowser-config
 spec:
   storageClassName: ocs-storagecluster-ceph-rbd
@@ -153,8 +165,6 @@ metadata:
     app.kubernetes.io/instance: filebrowser
     app.kubernetes.io/name: filebrowser
     app.kubernetes.io/part-of: filebrowser-app
-  annotations:
-    app.openshift.io/vcs-uri: 'https://github.com/jblumert/filebrowser'
 spec:
   ports:
     - name: 8080-tcp
